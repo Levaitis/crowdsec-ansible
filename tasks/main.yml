@@ -100,7 +100,7 @@
     - crowdsec-enroll
 
 - name: Ensure CrowdSec docker-compose is running (present)
-  community.docker.docker_compose:
+  community.docker.docker_compose_v2:
     project_src: "{{ crowdsec_compose_dir }}"
     state: present
   when:
@@ -110,7 +110,7 @@
     - crowdsec-service
 
 - name: Ensure CrowdSec docker-compose is absent (stopped)
-  community.docker.docker_compose:
+  community.docker.docker_compose_v2:
     project_src: "{{ crowdsec_compose_dir }}"
     state: absent
   when:
