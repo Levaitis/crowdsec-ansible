@@ -1,0 +1,130 @@
+---
+# SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# tasks file for crowdsec
+
+- name: Include OS-specific variables
+  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
+  tags:
+    - crowdsec
+    - crowdsec-install
+
+- name: Include install mode specific tasks
+  ansible.builtin.include_tasks: "install-docker.yml"
+  tags:
+    - crowdsec
+    - crowdsec-install
+
+
+- name: Ensure CrowdSec directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ crowdsec_host_user }}"
+    group: "{{ crowdsec_host_group }}"
+    mode: '0755'
+  loop:
+    - "{{ crowdsec_config_dir }}"
+    - "{{ crowdsec_data_dir }}"
+    - "{{ crowdsec_log_dir }}"
+  tags:
+    - crowdsec
+    - crowdsec-config
+
+- name: Configure CrowdSec acquisition
+  ansible.builtin.template:
+    src: acquis.yaml.j2
+    dest: "{{ crowdsec_config_dir }}/acquis.yaml"
+    owner: "{{ crowdsec_host_user }}"
+    group: "{{ crowdsec_host_group }}"
+    mode: '0644'
+  notify: Restart crowdsec
+  tags:
+    - crowdsec
+    - crowdsec-config
+
+- name: Configure CrowdSec config.yaml
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: "{{ crowdsec_config_dir }}/config.yaml"
+    owner: "{{ crowdsec_host_user }}"
+    group: "{{ crowdsec_host_group }}"
+    mode: '0644'
+  notify: Restart crowdsec
+  tags:
+    - crowdsec
+    - crowdsec-config
+
+- name: Install CrowdSec collections
+  community.docker.docker_container:
+    name: "{{ crowdsec_container_name }}-oneoff-collection-{{ item | regex_replace('/','_') }}"
+    image: "{{ crowdsec_docker_image }}:{{ crowdsec_docker_tag }}"
+    command: "cscli collections install {{ item }}"
+    state: started
+    auto_remove: true
+    volumes:
+      - "{{ crowdsec_config_dir }}:/etc/crowdsec"
+      - "{{ crowdsec_data_dir }}:/var/lib/crowdsec/data"
+      - "{{ crowdsec_log_dir }}:/var/log/crowdsec"
+    user: "0:0"
+  loop: "{{ crowdsec_collections }}"
+  notify: Restart crowdsec
+  tags:
+    - crowdsec
+    - crowdsec-collections
+
+- name: Enroll instance to CrowdSec Console
+  community.docker.docker_container:
+    name: "{{ crowdsec_container_name }}-oneoff-enroll"
+    image: "{{ crowdsec_docker_image }}:{{ crowdsec_docker_tag }}"
+    command: >
+      cscli console enroll {{ crowdsec_enroll_key }}
+      --name {{ crowdsec_enroll_name | default(ansible_hostname) }}
+      {{ '--tags ' + (crowdsec_enroll_tags | join(',')) if crowdsec_enroll_tags else '' }}
+      {{ '--overwrite' if crowdsec_enroll_overwrite else '' }}
+    state: started
+    auto_remove: true
+    volumes:
+      - "{{ crowdsec_config_dir }}:/etc/crowdsec"
+      - "{{ crowdsec_data_dir }}:/var/lib/crowdsec/data"
+      - "{{ crowdsec_log_dir }}:/var/log/crowdsec"
+    user: "0:0"
+  when:
+    - crowdsec_enroll_key | length > 0
+  register: enroll_result
+  changed_when: "'successfully enrolled' in (enroll_result.stdout|default(''))"
+  failed_when: enroll_result.rc != 0 and 'already enrolled' not in (enroll_result.stderr|default(''))
+  notify: Restart crowdsec
+  tags:
+    - crowdsec
+    - crowdsec-enroll
+
+- name: Ensure CrowdSec docker-compose is running (present)
+  community.docker.docker_compose:
+    project_src: "{{ crowdsec_compose_dir }}"
+    state: present
+  when:
+    - crowdsec_service_state == 'started'
+  tags:
+    - crowdsec
+    - crowdsec-service
+
+- name: Ensure CrowdSec docker-compose is absent (stopped)
+  community.docker.docker_compose:
+    project_src: "{{ crowdsec_compose_dir }}"
+    state: absent
+  when:
+    - crowdsec_service_state != 'started'
+  tags:
+    - crowdsec
+    - crowdsec-service
+
+- name: Install CrowdSec bouncers
+  ansible.builtin.include_tasks: install-bouncer.yml
+  loop: "{{ crowdsec_bouncers }}"
+  loop_control:
+    loop_var: bouncer
+  when: crowdsec_bouncers | length > 0
+  tags:
+    - crowdsec
+    - crowdsec-bouncers

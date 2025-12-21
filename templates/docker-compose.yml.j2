@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+version: '3.8'
+services:
+  {{ crowdsec_container_name }}:
+    image: "{{ crowdsec_docker_image }}:{{ crowdsec_docker_tag }}"
+    container_name: "{{ crowdsec_container_name }}"
+    restart: unless-stopped
+    ports:
+{% for p in crowdsec_docker_ports %}
+      - "{{ p }}"
+{% endfor %}
+    volumes:
+      - "{{ crowdsec_config_dir }}:/etc/crowdsec:Z"
+      - "{{ crowdsec_data_dir }}:/var/lib/crowdsec/data:Z"
+      - "{{ crowdsec_log_dir }}:/var/log/crowdsec:Z"
+    environment:
+{% if crowdsec_docker_env %}
+{% for k, v in crowdsec_docker_env.items() %}
+      {{ k }}: "{{ v }}"
+{% endfor %}
+{% endif %}
+    user: "0:0"  # run as root inside container
+    labels:
+      - "com.ansible.role=crowdsec"
+

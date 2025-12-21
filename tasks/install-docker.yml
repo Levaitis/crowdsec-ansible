@@ -1,0 +1,125 @@
+---
+# SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Tasks to deploy CrowdSec using docker-compose
+
+- name: Ensure docker-compose project directory exists
+  ansible.builtin.file:
+    path: "{{ crowdsec_compose_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  tags:
+    - crowdsec
+    - crowdsec-install
+
+- name: Ensure crowdsec host user exists
+  ansible.builtin.group:
+    name: "{{ crowdsec_host_group }}"
+    gid: "{{ crowdsec_host_gid }}"
+    state: present
+  tags:
+    - crowdsec
+    - crowdsec-install
+
+- name: Ensure crowdsec host user exists
+  ansible.builtin.user:
+    name: "{{ crowdsec_host_user }}"
+    uid: "{{ crowdsec_host_uid }}"
+    group: "{{ crowdsec_host_group }}"
+    system: yes
+    create_home: no
+    state: present
+  tags:
+    - crowdsec
+    - crowdsec-install
+
+- name: Ensure host directories for bind mounts exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ crowdsec_host_user }}"
+    group: "{{ crowdsec_host_group }}"
+    mode: '0755'
+  loop:
+    - "{{ crowdsec_config_dir }}"
+    - "{{ crowdsec_data_dir }}"
+    - "{{ crowdsec_log_dir }}"
+  tags:
+    - crowdsec
+    - crowdsec-install
+
+- name: Render docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ crowdsec_compose_dir }}/{{ crowdsec_compose_file }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Deploy crowdsec docker compose
+  tags:
+    - crowdsec
+    - crowdsec-install
+
+- name: Ensure crowdsec is present in /etc/subuid
+  ansible.builtin.lineinfile:
+    path: /etc/subuid
+    line: "{{ crowdsec_host_user }}:{{ crowdsec_host_uid }}:65536"
+    create: yes
+    state: present
+  tags:
+    - crowdsec
+    - crowdsec-install
+
+- name: Ensure crowdsec is present in /etc/subgid
+  ansible.builtin.lineinfile:
+    path: /etc/subgid
+    line: "{{ crowdsec_host_user }}:{{ crowdsec_host_gid }}:65536"
+    create: yes
+    state: present
+  tags:
+    - crowdsec
+    - crowdsec-install
+
+- name: Configure docker daemon for userns remap
+  ansible.builtin.copy:
+    dest: /etc/docker/daemon.json
+    content: |
+      {
+        "userns-remap": "{{ crowdsec_host_user }}"
+      }
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart docker daemon
+  tags:
+    - crowdsec
+    - crowdsec-install
+
+- name: Ensure docker service is started
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+  tags:
+    - crowdsec
+    - crowdsec-install
+
+- name: Pull docker images via compose
+  community.docker.docker_compose:
+    project_src: "{{ crowdsec_compose_dir }}"
+    pull: true
+  tags:
+    - crowdsec
+    - crowdsec-install
+
+- name: Start docker-compose services
+  community.docker.docker_compose:
+    project_src: "{{ crowdsec_compose_dir }}"
+    state: present
+    restarted: true
+  notify: Restart crowdsec
+  tags:
+    - crowdsec
+    - crowdsec-install
