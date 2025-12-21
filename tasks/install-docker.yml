@@ -116,6 +116,7 @@
   community.docker.docker_compose:
     project_src: "{{ crowdsec_compose_dir }}"
     pull: true
+  when: crowdsec_service_state == 'started'
   tags:
     - crowdsec
     - crowdsec-install
@@ -125,6 +126,7 @@
     project_src: "{{ crowdsec_compose_dir }}"
     state: present
     restarted: true
+  when: crowdsec_service_state == 'started'
   notify: Restart crowdsec
   tags:
     - crowdsec

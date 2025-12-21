@@ -1,0 +1,26 @@
+---
+# SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+- name: Verify (files-only)
+  hosts: all
+  become: true
+  tasks:
+    - name: Check config.yaml exists
+      ansible.builtin.stat:
+        path: /etc/crowdsec/config.yaml
+      register: cfg
+
+    - name: Assert config exists
+      ansible.builtin.assert:
+        that:
+          - cfg.stat.exists
+
+    - name: Check docker-compose file exists
+      ansible.builtin.stat:
+        path: /srv/crowdsec/docker-compose.yml
+      register: dc
+
+    - name: Assert compose exists
+      ansible.builtin.assert:
+        that:
+          - dc.stat.exists

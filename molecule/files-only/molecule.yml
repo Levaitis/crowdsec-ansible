@@ -1,0 +1,4 @@
+# SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# This per-scenario molecule.yml is removed in favor of canonical
+# 'molecule/default/molecule.yml' and 'molecule/dind/molecule.yml'.
