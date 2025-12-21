@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
+
+SPDX-License-Identifier: AGPL-3.0-only
+-->
 # Ansible Role: CrowdSec
 
 An Ansible role for installing and configuring [CrowdSec](https://www.crowdsec.net/), an open-source and collaborative security engine.

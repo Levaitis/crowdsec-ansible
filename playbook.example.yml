@@ -1,4 +1,6 @@
 ---
+# SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
+# SPDX-License-Identifier: AGPL-3.0-or-later
 # Example playbook for using the CrowdSec role
 
 - name: Install and configure CrowdSec
