@@ -29,8 +29,8 @@ crowdsec_collections:
 crowdsec_bouncers: []
 # Example:
 # crowdsec_bouncers:
-#   - name: crowdsecurity/cs-firewall-bouncer
-#     api_key: "your-api-key-here"
+#   - name: firewall-bouncer
+#   - name: nginx-bouncer
 
 # Acquisition configuration (log files to monitor)
 crowdsec_acquisitions:

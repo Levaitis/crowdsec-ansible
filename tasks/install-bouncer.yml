@@ -6,7 +6,6 @@
   register: bouncer_install
   changed_when: "'successfully added' in bouncer_install.stdout"
   failed_when: bouncer_install.rc != 0 and 'already exists' not in bouncer_install.stderr
-  when: bouncer.api_key is defined
   tags:
     - crowdsec
     - crowdsec-bouncers

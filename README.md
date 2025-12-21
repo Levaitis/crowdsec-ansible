@@ -135,7 +135,7 @@ None.
           - crowdsecurity/sshd
         crowdsec_bouncers:
           - name: firewall-bouncer
-            api_key: "your-bouncer-api-key"
+          - name: nginx-bouncer
 ```
 
 ## Collections
