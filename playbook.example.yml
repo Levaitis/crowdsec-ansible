@@ -4,11 +4,12 @@
 # Example playbook for using the CrowdSec role
 
 - name: Install and configure CrowdSec
-  hosts: all
+  hosts: localhost
+  connection: local
   become: yes
   
   roles:
-    - role: Levaitis.crowdsec
+    - role: ./
       vars:
         # Set log level to info
         crowdsec_log_level: info

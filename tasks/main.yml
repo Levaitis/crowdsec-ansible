@@ -2,19 +2,11 @@
 # SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # tasks file for crowdsec
-
-- name: Include OS-specific variables
-  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
-  tags:
-    - crowdsec
-    - crowdsec-install
-
 - name: Include install mode specific tasks
   ansible.builtin.include_tasks: "install-docker.yml"
   tags:
     - crowdsec
     - crowdsec-install
-
 
 - name: Ensure CrowdSec directories exist
   ansible.builtin.file:
