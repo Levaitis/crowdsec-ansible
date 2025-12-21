@@ -72,7 +72,8 @@
     command: >
       cscli console enroll {{ crowdsec_enroll_key }}
       --name {{ crowdsec_enroll_name | default(ansible_hostname) }}
-      {{ '--tags ' + (crowdsec_enroll_tags | join(',')) if crowdsec_enroll_tags else '' }}
+      {{ '--tags ' + (crowdsec_enroll_tags
+        | join(',')) if crowdsec_enroll_tags else '' }}
       {{ '--overwrite' if crowdsec_enroll_overwrite else '' }}
     state: started
     auto_remove: true
@@ -85,7 +86,9 @@
     - crowdsec_enroll_key | length > 0
   register: enroll_result
   changed_when: "'successfully enrolled' in (enroll_result.stdout|default(''))"
-  failed_when: enroll_result.rc != 0 and 'already enrolled' not in (enroll_result.stderr|default(''))
+  failed_when: 
+    - enroll_result.rc != 0
+    - '"already enrolled" not in (enroll_result.stderr|default(''))'
   notify: Restart crowdsec
   tags:
     - crowdsec

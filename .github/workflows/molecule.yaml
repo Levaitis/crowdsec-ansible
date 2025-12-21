@@ -41,9 +41,12 @@ jobs:
           python -m pip install "${{ matrix.ansible-version }}" \
             ansible-lint "molecule[docker]" docker
           python -m pip install \
-            flake8 flake8-bugbear flake8-docstrings flake8-import-order flake8-pylint \
+            flake8 flake8-bugbear flake8-docstrings \
+            flake8-import-order flake8-pylint \
             pytest pytest-testinfra yamllint
-          if [ -f requirements.yml ]; then ansible-galaxy collection install -r requirements.yml; fi
+          if [ -f requirements.yml ]; then
+            ansible-galaxy collection install -r requirements.yml;
+          fi
         env:
           PIP_NO_WARN_SCRIPT_LOCATION: 0
 
@@ -55,8 +58,10 @@ jobs:
         run: |
           # stop the build if there are Python syntax errors or undefined names
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          # exit-zero treats all errors as warnings.
+          # The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 \
+            --max-line-length=127 --statistics
 
       - name: Test with Molecule
         run: |
