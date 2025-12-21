@@ -1,7 +1,0 @@
----
-# SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
-# SPDX-License-Identifier: AGPL-3.0-or-later
-# Debian/Ubuntu specific variables
-
-crowdsec_package_name: crowdsec
-crowdsec_service_name: crowdsec

@@ -9,18 +9,19 @@
     - crowdsec
     - crowdsec-install
 
-- name: Include OS-specific installation tasks
-  ansible.builtin.include_tasks: "install-{{ ansible_os_family }}.yml"
+- name: Include install mode specific tasks
+  ansible.builtin.include_tasks: "install-docker.yml"
   tags:
     - crowdsec
     - crowdsec-install
+
 
 - name: Ensure CrowdSec directories exist
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
-    owner: root
-    group: root
+    owner: "{{ crowdsec_host_user }}"
+    group: "{{ crowdsec_host_group }}"
     mode: '0755'
   loop:
     - "{{ crowdsec_config_dir }}"
@@ -34,8 +35,8 @@
   ansible.builtin.template:
     src: acquis.yaml.j2
     dest: "{{ crowdsec_config_dir }}/acquis.yaml"
-    owner: root
-    group: root
+    owner: "{{ crowdsec_host_user }}"
+    group: "{{ crowdsec_host_group }}"
     mode: '0644'
   notify: Restart crowdsec
   tags:
@@ -46,8 +47,8 @@
   ansible.builtin.template:
     src: config.yaml.j2
     dest: "{{ crowdsec_config_dir }}/config.yaml"
-    owner: root
-    group: root
+    owner: "{{ crowdsec_host_user }}"
+    group: "{{ crowdsec_host_group }}"
     mode: '0644'
   notify: Restart crowdsec
   tags:
@@ -55,37 +56,65 @@
     - crowdsec-config
 
 - name: Install CrowdSec collections
-  ansible.builtin.command: "cscli collections install {{ item }}"
+  community.docker.docker_container:
+    name: "{{ crowdsec_container_name }}-oneoff-collection-{{ item | regex_replace('/','_') }}"
+    image: "{{ crowdsec_docker_image }}:{{ crowdsec_docker_tag }}"
+    command: "cscli collections install {{ item }}"
+    state: started
+    auto_remove: true
+    volumes:
+      - "{{ crowdsec_config_dir }}:/etc/crowdsec"
+      - "{{ crowdsec_data_dir }}:/var/lib/crowdsec/data"
+      - "{{ crowdsec_log_dir }}:/var/log/crowdsec"
+    user: "0:0"
   loop: "{{ crowdsec_collections }}"
-  register: collections_install
-  changed_when: "'overwrite' in collections_install.stdout or 'installed' in collections_install.stdout"
-  failed_when: collections_install.rc != 0 and 'already exists' not in collections_install.stderr
   notify: Restart crowdsec
   tags:
     - crowdsec
     - crowdsec-collections
 
 - name: Enroll instance to CrowdSec Console
-  ansible.builtin.command: >
-    cscli console enroll {{ crowdsec_enroll_key }}
-    --name {{ crowdsec_enroll_name | default(ansible_hostname) }}
-    {{ '--tags ' + (crowdsec_enroll_tags | join(',')) if crowdsec_enroll_tags else '' }}
-    {{ '--overwrite' if crowdsec_enroll_overwrite else '' }}
+  community.docker.docker_container:
+    name: "{{ crowdsec_container_name }}-oneoff-enroll"
+    image: "{{ crowdsec_docker_image }}:{{ crowdsec_docker_tag }}"
+    command: >
+      cscli console enroll {{ crowdsec_enroll_key }}
+      --name {{ crowdsec_enroll_name | default(ansible_hostname) }}
+      {{ '--tags ' + (crowdsec_enroll_tags | join(',')) if crowdsec_enroll_tags else '' }}
+      {{ '--overwrite' if crowdsec_enroll_overwrite else '' }}
+    state: started
+    auto_remove: true
+    volumes:
+      - "{{ crowdsec_config_dir }}:/etc/crowdsec"
+      - "{{ crowdsec_data_dir }}:/var/lib/crowdsec/data"
+      - "{{ crowdsec_log_dir }}:/var/log/crowdsec"
+    user: "0:0"
   when:
     - crowdsec_enroll_key | length > 0
   register: enroll_result
-  changed_when: "'successfully enrolled' in enroll_result.stdout"
-  failed_when: enroll_result.rc != 0 and 'already enrolled' not in enroll_result.stderr
+  changed_when: "'successfully enrolled' in (enroll_result.stdout|default(''))"
+  failed_when: enroll_result.rc != 0 and 'already enrolled' not in (enroll_result.stderr|default(''))
   notify: Restart crowdsec
   tags:
     - crowdsec
     - crowdsec-enroll
 
-- name: Ensure CrowdSec service is in desired state
-  ansible.builtin.service:
-    name: crowdsec
-    state: "{{ crowdsec_service_state }}"
-    enabled: "{{ crowdsec_service_enabled }}"
+- name: Ensure CrowdSec docker-compose is running (present)
+  community.docker.docker_compose:
+    project_src: "{{ crowdsec_compose_dir }}"
+    state: present
+  when:
+    - crowdsec_service_state == 'started'
+  tags:
+    - crowdsec
+    - crowdsec-service
+
+- name: Ensure CrowdSec docker-compose is absent (stopped)
+  community.docker.docker_compose:
+    project_src: "{{ crowdsec_compose_dir }}"
+    state: absent
+  when:
+    - crowdsec_service_state != 'started'
   tags:
     - crowdsec
     - crowdsec-service

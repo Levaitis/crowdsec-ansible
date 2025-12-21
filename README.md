@@ -4,12 +4,6 @@ SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 # Ansible Role: CrowdSec
-<!--
-SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
-
-SPDX-License-Identifier: AGPL-3.0-only
--->
-# Ansible role: CrowdSec
 
 An Ansible role for installing and configuring [CrowdSec](https://www.crowdsec.net/), an open-source and collaborative security engine.
 
@@ -17,7 +11,7 @@ This project intends to be used as part of the [mash project](https://github.com
 
 ## Description
 
-This role installs and configures CrowdSec on Debian/Ubuntu. 
+This role deploys CrowdSec as a Docker service using docker-compose and manages configuration via host-mounted files rendered by Ansible.
 
 CrowdSec is a free, modern & collaborative behavior detection engine, coupled with a global IP reputation network. It is also an open source project that can be found on [GitHub](https://github.com/crowdsecurity/crowdsec).
 
@@ -28,25 +22,25 @@ For more information refer to their website: https://www.crowdsec.net/.
 ## Requirements
 
 - Ansible 2.9 or higher
-- Supported operating systems:
-  - Ubuntu 20.04, 22.04, 24.04
-  - Debian 10, 11, 12
+- Docker engine installed on target hosts
+- `community.docker` Ansible collection (listed in `meta/main.yml`)
 
 ## Role Variables
-
-### Main Variables
 
 Available variables are listed below, along with default values (see `defaults/main.yml`):
 
 ```yaml
-# CrowdSec version to install (leave empty for latest)
-crowdsec_version: ""
+# Installation mode (docker only)
+crowdsec_install_type: docker
 
-# CrowdSec service state and enabled status
-crowdsec_service_state: started
-crowdsec_service_enabled: true
+# Docker image and compose settings
+crowdsec_docker_image: "crowdsecurity/crowdsec"
+crowdsec_docker_tag: "latest"
+crowdsec_container_name: crowdsec
+crowdsec_compose_dir: /srv/crowdsec
+crowdsec_compose_file: docker-compose.yml
 
-# CrowdSec configuration directories
+# Host directories (rendered templates are placed here and mounted into the container)
 crowdsec_config_dir: /etc/crowdsec
 crowdsec_data_dir: /var/lib/crowdsec/data
 crowdsec_log_dir: /var/log/crowdsec
@@ -91,19 +85,17 @@ crowdsec_bouncers: []
 crowdsec_package_state: present  # Options: present, latest
 ```
 
-## Dependencies
-
-None.
-
 ## Example Playbook
 
-### Basic Installation
+### Basic Deployment
 
 ```yaml
 - hosts: servers
   become: yes
   roles:
     - role: crowdsec
+      vars:
+        crowdsec_install_type: docker
 ```
 
 ### Advanced Configuration
@@ -114,12 +106,12 @@ None.
   roles:
     - role: crowdsec
       vars:
-        crowdsec_log_level: debug
+        crowdsec_docker_ports:
+          - "127.0.0.1:8080:8080"
         crowdsec_collections:
           - crowdsecurity/linux
           - crowdsecurity/sshd
           - crowdsecurity/nginx
-          - crowdsecurity/apache2
         crowdsec_acquisitions:
           - source: file
             filenames:
@@ -199,10 +191,10 @@ This role supports the following tags for selective execution:
 - `crowdsec-enroll` - Console enrollment only
 - `crowdsec-service` - Service management only
 
-Example: Install and configure without starting service
+Example: Start services only
 
 ```bash
-ansible-playbook playbook.yml --tags crowdsec-install,crowdsec-config --skip-tags crowdsec-service
+ansible-playbook playbook.yml --tags crowdsec-service
 ```
 
 ## License

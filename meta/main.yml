@@ -27,4 +27,8 @@ galaxy_info:
     - detection
     - firewall
 
+# Add collection dependency for docker-compose management
+collections:
+  - community.docker
+
 dependencies: []

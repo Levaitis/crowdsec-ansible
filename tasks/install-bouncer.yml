@@ -3,11 +3,22 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Install individual bouncer
 
-- name: Install bouncer {{ bouncer.name }}
-  ansible.builtin.command: "cscli bouncers add {{ bouncer.name }}"
+- name: Install bouncer {{ bouncer.name }} (docker one-shot)
+  community.docker.docker_container:
+    name: "{{ crowdsec_container_name }}-oneoff-bouncer-{{ bouncer.name }}"
+    image: "{{ crowdsec_docker_image }}:{{ crowdsec_docker_tag }}"
+    command: "cscli bouncers add {{ bouncer.name }}"
+    state: started
+    auto_remove: true
+    volumes:
+      - "{{ crowdsec_config_dir }}:/etc/crowdsec"
+      - "{{ crowdsec_data_dir }}:/var/lib/crowdsec/data"
+      - "{{ crowdsec_log_dir }}:/var/log/crowdsec"
+    user: "0:0"
   register: bouncer_install
-  changed_when: "'successfully added' in bouncer_install.stdout"
-  failed_when: bouncer_install.rc != 0 and 'already exists' not in bouncer_install.stderr
+  changed_when: "'successfully added' in (bouncer_install.stdout|default(''))"
+  failed_when: bouncer_install.rc != 0 and 'already exists' not in (bouncer_install.stderr|default(''))
+  when: crowdsec_install_type == 'docker'
   tags:
     - crowdsec
     - crowdsec-bouncers
