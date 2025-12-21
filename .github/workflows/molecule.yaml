@@ -40,7 +40,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install "${{ matrix.ansible-version }}" \
             ansible-lint "molecule[docker]" docker
-          python -m pip install /
+          python -m pip install \
             flake8 flake8-bugbear flake8-docstrings flake8-import-order flake8-pylint \
             pytest pytest-testinfra yamllint
           if [ -f requirements.yml ]; then ansible-galaxy collection install -r requirements.yml; fi
