@@ -9,7 +9,7 @@
     state: present
     restarted: true
 
-- name: Restart crowdsec 
+- name: Restart crowdsec
   community.docker.docker_compose:
     project_src: "{{ crowdsec_compose_dir }}"
     restarted: true
@@ -19,4 +19,3 @@
   ansible.builtin.service:
     name: docker
     state: restarted
-

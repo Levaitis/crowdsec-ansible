@@ -57,7 +57,7 @@
 
 - name: Install CrowdSec collections
   community.docker.docker_container:
-    name: "{{ crowdsec_container_name }}-oneoff-collection-{{ item | regex_replace('/','_') }}"
+    name: "{{ crowdsec_container_name }}-oneoff-collection-{{ item | regex_replace('/', '_') }}"
     image: "{{ crowdsec_docker_image }}:{{ crowdsec_docker_tag }}"
     command: "cscli collections install {{ item }}"
     state: started
