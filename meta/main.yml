@@ -20,10 +20,6 @@ galaxy_info:
         - buster
         - bullseye
         - bookworm
-    - name: EL
-      versions:
-        - "8"
-        - "9"
   galaxy_tags:
     - crowdsec
     - security
