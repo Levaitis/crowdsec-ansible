@@ -4,12 +4,26 @@ SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 # Ansible Role: CrowdSec
+<!--
+SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
+
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+# Ansible role: CrowdSec
 
 An Ansible role for installing and configuring [CrowdSec](https://www.crowdsec.net/), an open-source and collaborative security engine.
 
+This project intends to be used as part of the [mash project](https://github.com/mother-of-all-self-hosting/mash-playbook/tree/main) in the future.
+
 ## Description
 
-This role installs and configures CrowdSec on Debian/Ubuntu and RedHat/CentOS-based systems. CrowdSec is a free, modern & collaborative behavior detection engine, coupled with a global IP reputation network. It stacks on fail2ban's philosophy but is IPV6 compatible and 60x faster.
+This role installs and configures CrowdSec on Debian/Ubuntu. 
+
+CrowdSec is a free, modern & collaborative behavior detection engine, coupled with a global IP reputation network. It is also an open source project that can be found on [GitHub](https://github.com/crowdsecurity/crowdsec).
+
+I personally am using it for almost 2 years now - bot personal and in a professional setting. 
+
+For more information refer to their website: https://www.crowdsec.net/.
 
 ## Requirements
 
@@ -17,7 +31,6 @@ This role installs and configures CrowdSec on Debian/Ubuntu and RedHat/CentOS-ba
 - Supported operating systems:
   - Ubuntu 20.04, 22.04, 24.04
   - Debian 10, 11, 12
-  - RHEL/CentOS/Rocky/AlmaLinux 8, 9
 
 ## Role Variables
 
@@ -154,7 +167,7 @@ Collections are bundles of parsers and scenarios for specific services. Common c
 - `crowdsecurity/mysql` - MySQL database
 - `crowdsecurity/postgresql` - PostgreSQL database
 
-Find more collections at: https://hub.crowdsec.net/browse/#collections
+Find more collections at: https://app.crowdsec.net/hub/collections
 
 ## Bouncers
 
@@ -162,9 +175,9 @@ Bouncers are components that block malicious IPs. Popular bouncers:
 
 - `cs-firewall-bouncer` - iptables/nftables bouncer
 - `cs-nginx-bouncer` - Nginx bouncer
-- `cs-cloudflare-bouncer` - Cloudflare bouncer
+- `cs-traefik-bouncer` - Traefik bouncer realised as [plugin](https://plugins.traefik.io/plugins/6335346ca4caa9ddeffda116/crowdsec-bouncer-traefik-plugin).
 
-Find more bouncers at: https://hub.crowdsec.net/browse/#bouncers
+Find more bouncers at: https://docs.crowdsec.net/u/bouncers/intro
 
 ## CrowdSec Console Enrollment
 
@@ -194,11 +207,11 @@ ansible-playbook playbook.yml --tags crowdsec-install,crowdsec-config --skip-tag
 
 ## License
 
-GPL-2.0-or-later
+AGPL-3.0-or-later
 
 ## Author Information
 
-This role was created for use with the mash project.
+This role was created for use with the [mash project](https://github.com/mother-of-all-self-hosting/mash-playbook/tree/main) by [Leonardo Vasi](https://github.com/Levaitis).
 
 ## Contributing
 
@@ -206,7 +219,10 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Support
 
-For issues and questions:
-- CrowdSec Documentation: https://doc.crowdsec.net/
+For issues and questions with CrowdSec:
+- CrowdSec Documentation: https://docs.crowdsec.net/
 - CrowdSec Hub: https://hub.crowdsec.net/
+- CrowdSec Discord: https://discord.com/invite/crowdsec
 - CrowdSec Community: https://discourse.crowdsec.net/
+
+For issues with this role open an issue on this repository.
