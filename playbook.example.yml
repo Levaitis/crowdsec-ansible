@@ -8,7 +8,7 @@
   become: yes
   
   roles:
-    - role: crowdsec
+    - role: Levaitis.crowdsec
       vars:
         # Set log level to info
         crowdsec_log_level: info

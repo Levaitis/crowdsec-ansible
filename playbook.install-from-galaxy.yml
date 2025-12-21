@@ -1,0 +1,30 @@
+---
+# SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+- name: Install CrowdSec role from Galaxy and test
+  hosts: localhost
+  connection: local
+  become: true
+  vars:
+    role_name: Levaitis.crowdsec
+    role_version: latest
+  tasks:
+    - name: Ensure community.docker collection is installed
+      ansible.builtin.command: "ansible-galaxy collection install community.docker"
+      changed_when: false
+
+    - name: Install role from galaxy
+      ansible.builtin.command: "ansible-galaxy role install {{ role_name }} --force"
+      changed_when: false
+
+    - name: Create inventory
+      ansible.builtin.copy:
+        dest: ./inventory.ini
+        content: |
+          [local]
+          localhost ansible_connection=local
+
+    - name: Run role from galaxy (test)
+      ansible.builtin.include_role:
+        name: "{{ role_name }}"
+      tags: run
