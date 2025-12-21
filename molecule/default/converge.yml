@@ -5,7 +5,7 @@
   hosts: all
   become: true
   roles:
-    - role: ../..
+    - role: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
       vars:
         crowdsec_install_type: docker
         crowdsec_compose_dir: /srv/crowdsec
