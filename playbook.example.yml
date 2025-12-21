@@ -6,19 +6,16 @@
 - name: Install and configure CrowdSec
   hosts: localhost
   connection: local
-  become: yes
-  
+  become: true
   roles:
     - role: ./
       vars:
         # Set log level to info
         crowdsec_log_level: info
-        
-        # Install common collections
+      # Install common collections
         crowdsec_collections:
           - crowdsecurity/linux
           - crowdsecurity/sshd
-        
         # Configure log acquisition
         crowdsec_acquisitions:
           - source: file
@@ -27,10 +24,8 @@
               - /var/log/syslog
             labels:
               type: syslog
-        
         # Enable prometheus metrics
         crowdsec_prometheus_enabled: true
-        
         # Ensure service is started and enabled
         crowdsec_service_state: started
         crowdsec_service_enabled: true
