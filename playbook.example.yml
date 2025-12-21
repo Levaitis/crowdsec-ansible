@@ -1,0 +1,33 @@
+---
+# Example playbook for using the CrowdSec role
+
+- name: Install and configure CrowdSec
+  hosts: all
+  become: yes
+  
+  roles:
+    - role: crowdsec
+      vars:
+        # Set log level to info
+        crowdsec_log_level: info
+        
+        # Install common collections
+        crowdsec_collections:
+          - crowdsecurity/linux
+          - crowdsecurity/sshd
+        
+        # Configure log acquisition
+        crowdsec_acquisitions:
+          - source: file
+            filenames:
+              - /var/log/auth.log
+              - /var/log/syslog
+            labels:
+              type: syslog
+        
+        # Enable prometheus metrics
+        crowdsec_prometheus_enabled: true
+        
+        # Ensure service is started and enabled
+        crowdsec_service_state: started
+        crowdsec_service_enabled: true

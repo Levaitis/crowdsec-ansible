@@ -1,0 +1,53 @@
+---
+# CrowdSec Main Configuration
+# Managed by Ansible - Do not edit manually
+
+common:
+  daemonize: false
+  log_media: {{ crowdsec_log_mode }}
+  log_level: {{ crowdsec_log_level }}
+{% if crowdsec_log_mode == "file" %}
+  log_dir: {{ crowdsec_log_dir }}
+{% endif %}
+  working_dir: {{ crowdsec_data_dir }}
+
+config_paths:
+  config_dir: {{ crowdsec_config_dir }}
+  data_dir: {{ crowdsec_data_dir }}
+  simulation_path: {{ crowdsec_config_dir }}/simulation.yaml
+  hub_dir: {{ crowdsec_config_dir }}/hub
+  index_path: {{ crowdsec_config_dir }}/hub/.index.json
+
+crowdsec_service:
+  acquisition_path: {{ crowdsec_config_dir }}/acquis.yaml
+  parser_routines: 1
+
+cscli:
+  output: human
+
+db_config:
+  log_level: info
+  type: sqlite
+  db_path: {{ crowdsec_data_dir }}/crowdsec.db
+  flush:
+    max_items: 5000
+    max_age: 7d
+
+api:
+  client:
+    credentials_path: {{ crowdsec_config_dir }}/local_api_credentials.yaml
+  server:
+    log_level: info
+    listen_uri: {{ crowdsec_local_api_url }}
+    profiles_path: {{ crowdsec_config_dir }}/profiles.yaml
+    console_path: {{ crowdsec_config_dir }}/console.yaml
+    online_client:
+      credentials_path: {{ crowdsec_config_dir }}/online_api_credentials.yaml
+
+{% if crowdsec_prometheus_enabled %}
+prometheus:
+  enabled: {{ crowdsec_prometheus_enabled | lower }}
+  level: {{ crowdsec_prometheus_level }}
+  listen_addr: {{ crowdsec_prometheus_listen_addr }}
+  listen_port: {{ crowdsec_prometheus_listen_port }}
+{% endif %}

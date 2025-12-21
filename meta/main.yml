@@ -1,0 +1,32 @@
+---
+galaxy_info:
+  role_name: crowdsec
+  namespace: levaitis
+  author: Levaitis
+  description: Ansible role for installing and configuring CrowdSec
+  company: ""
+  license: GPL-2.0-or-later
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: Debian
+      versions:
+        - buster
+        - bullseye
+        - bookworm
+    - name: EL
+      versions:
+        - "8"
+        - "9"
+  galaxy_tags:
+    - crowdsec
+    - security
+    - intrusion
+    - detection
+    - firewall
+
+dependencies: []

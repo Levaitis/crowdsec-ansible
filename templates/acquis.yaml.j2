@@ -1,0 +1,29 @@
+---
+# CrowdSec Acquisition Configuration
+# Managed by Ansible - Do not edit manually
+
+{% for acquisition in crowdsec_acquisitions %}
+- source: {{ acquisition.source }}
+{% if acquisition.filenames is defined %}
+  filenames:
+{% for filename in acquisition.filenames %}
+    - {{ filename }}
+{% endfor %}
+{% endif %}
+{% if acquisition.journalctl_filter is defined %}
+  journalctl_filter:
+{% for filter in acquisition.journalctl_filter %}
+    - {{ filter }}
+{% endfor %}
+{% endif %}
+{% if acquisition.labels is defined %}
+  labels:
+{% for key, value in acquisition.labels.items() %}
+    {{ key }}: {{ value }}
+{% endfor %}
+{% endif %}
+{% if acquisition.mode is defined %}
+  mode: {{ acquisition.mode }}
+{% endif %}
+
+{% endfor %}

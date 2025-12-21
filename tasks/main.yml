@@ -1,0 +1,99 @@
+---
+# tasks file for crowdsec
+
+- name: Include OS-specific variables
+  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
+  tags:
+    - crowdsec
+    - crowdsec-install
+
+- name: Include OS-specific installation tasks
+  ansible.builtin.include_tasks: "install-{{ ansible_os_family }}.yml"
+  tags:
+    - crowdsec
+    - crowdsec-install
+
+- name: Ensure CrowdSec directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - "{{ crowdsec_config_dir }}"
+    - "{{ crowdsec_data_dir }}"
+    - "{{ crowdsec_log_dir }}"
+  tags:
+    - crowdsec
+    - crowdsec-config
+
+- name: Configure CrowdSec acquisition
+  ansible.builtin.template:
+    src: acquis.yaml.j2
+    dest: "{{ crowdsec_config_dir }}/acquis.yaml"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart crowdsec
+  tags:
+    - crowdsec
+    - crowdsec-config
+
+- name: Configure CrowdSec config.yaml
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: "{{ crowdsec_config_dir }}/config.yaml"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart crowdsec
+  tags:
+    - crowdsec
+    - crowdsec-config
+
+- name: Install CrowdSec collections
+  ansible.builtin.command: "cscli collections install {{ item }}"
+  loop: "{{ crowdsec_collections }}"
+  register: collections_install
+  changed_when: "'overwrite' in collections_install.stdout or 'installed' in collections_install.stdout"
+  failed_when: collections_install.rc != 0 and 'already exists' not in collections_install.stderr
+  notify: Restart crowdsec
+  tags:
+    - crowdsec
+    - crowdsec-collections
+
+- name: Enroll instance to CrowdSec Console
+  ansible.builtin.command: >
+    cscli console enroll {{ crowdsec_enroll_key }}
+    --name {{ crowdsec_enroll_name | default(ansible_hostname) }}
+    {{ '--tags ' + (crowdsec_enroll_tags | join(',')) if crowdsec_enroll_tags else '' }}
+    {{ '--overwrite' if crowdsec_enroll_overwrite else '' }}
+  when:
+    - crowdsec_enroll_key | length > 0
+  register: enroll_result
+  changed_when: "'successfully enrolled' in enroll_result.stdout"
+  failed_when: enroll_result.rc != 0 and 'already enrolled' not in enroll_result.stderr
+  notify: Restart crowdsec
+  tags:
+    - crowdsec
+    - crowdsec-enroll
+
+- name: Ensure CrowdSec service is in desired state
+  ansible.builtin.service:
+    name: crowdsec
+    state: "{{ crowdsec_service_state }}"
+    enabled: "{{ crowdsec_service_enabled }}"
+  tags:
+    - crowdsec
+    - crowdsec-service
+
+- name: Install CrowdSec bouncers
+  ansible.builtin.include_tasks: install-bouncer.yml
+  loop: "{{ crowdsec_bouncers }}"
+  loop_control:
+    loop_var: bouncer
+  when: crowdsec_bouncers | length > 0
+  tags:
+    - crowdsec
+    - crowdsec-bouncers

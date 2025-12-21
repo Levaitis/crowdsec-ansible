@@ -1,0 +1,14 @@
+---
+# handlers file for crowdsec
+
+- name: Restart crowdsec
+  ansible.builtin.service:
+    name: crowdsec
+    state: restarted
+  when: crowdsec_service_state == "started"
+
+- name: Reload crowdsec
+  ansible.builtin.service:
+    name: crowdsec
+    state: reloaded
+  when: crowdsec_service_state == "started"
