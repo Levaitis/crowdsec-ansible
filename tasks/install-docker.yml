@@ -113,7 +113,7 @@
     - crowdsec-install
 
 - name: Pull docker images via compose
-  community.docker.docker_compose:
+  community.docker.docker_compose_v2:
     project_src: "{{ crowdsec_compose_dir }}"
     pull: true
   when: crowdsec_service_state == 'started'
@@ -122,7 +122,7 @@
     - crowdsec-install
 
 - name: Start docker-compose services
-  community.docker.docker_compose:
+  community.docker.docker_compose_v2:
     project_src: "{{ crowdsec_compose_dir }}"
     state: present
     restarted: true
