@@ -1,0 +1,34 @@
+---
+# SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+galaxy_info:
+  role_name: crowdsec
+  namespace: levaitis
+  author: Levaitis
+  description: Ansible role for installing and configuring CrowdSec
+  company: ""
+  license: AGPL-3.0-or-later
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: Debian
+      versions:
+        - buster
+        - bullseye
+        - bookworm
+  galaxy_tags:
+    - crowdsec
+    - security
+    - intrusion
+    - detection
+    - firewall
+
+# Add collection dependency for docker-compose management
+collections:
+  - community.docker
+
+dependencies: []

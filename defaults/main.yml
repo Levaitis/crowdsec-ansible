@@ -1,0 +1,75 @@
+---
+# SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# defaults file for crowdsec (docker-only)
+
+# CrowdSec configuration
+crowdsec_config_dir: /etc/crowdsec
+crowdsec_data_dir: /var/lib/crowdsec/data
+
+# API settings
+crowdsec_local_api_url: "http://127.0.0.1:8080"
+
+# Log settings
+crowdsec_log_level: info
+crowdsec_log_mode: file
+crowdsec_log_dir: /var/log/crowdsec
+
+# Collections to install (CrowdSec security scenarios)
+crowdsec_collections:
+  - crowdsecurity/linux
+  - crowdsecurity/sshd
+
+# Bouncers to install
+crowdsec_bouncers: []
+
+# Acquisition configuration (log files to monitor)
+crowdsec_acquisitions:
+  - source: file
+    filenames:
+      - /var/log/auth.log
+      - /var/log/syslog
+    labels:
+      type: syslog
+
+# Enable/disable prometheus metrics
+crowdsec_prometheus_enabled: true
+crowdsec_prometheus_level: full
+crowdsec_prometheus_listen_addr: "127.0.0.1"
+crowdsec_prometheus_listen_port: 6060
+
+# Console enrollment
+crowdsec_enroll_key: ""
+crowdsec_enroll_name: ""
+crowsec_enroll_tags: []
+crowsec_enroll_overwrite: false
+
+# Service state (controls docker-compose start/stop)
+crowdsec_service_state: started
+crowdsec_service_enabled: true
+
+# Installation mode: docker (only supported mode)
+crowdsec_install_type: docker
+
+# Docker / Docker-Compose settings
+crowdsec_docker_image: "crowdsecurity/crowdsec"
+crowdsec_docker_tag: "latest"
+crowdsec_container_name: crowdsec
+crowdsec_compose_dir: /srv/crowdsec
+crowdsec_compose_project_name: crowdsec
+crowdsec_compose_file: docker-compose.yml
+
+# Host user to map container root to
+crowdsec_host_user: crowdsec
+crowdsec_host_uid: 10010
+crowdsec_host_group: crowdsec
+crowdsec_host_gid: 10010
+
+# Docker compose ports (host:container). Use strings in list form
+# Example: ["127.0.0.1:8080:8080", "127.0.0.1:6060:6060"]
+crowdsec_docker_ports:
+  - "127.0.0.1:8080:8080"
+  - "127.0.0.1:6060:6060"
+
+# Additional environment variables for the container
+crowdsec_docker_env: {}
