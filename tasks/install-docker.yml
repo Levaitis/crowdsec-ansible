@@ -14,7 +14,7 @@
     - crowdsec
     - crowdsec-install
 
-- name: Ensure crowdsec host user exists
+- name: Ensure crowdsec host group exists
   ansible.builtin.group:
     name: "{{ crowdsec_host_group }}"
     gid: "{{ crowdsec_host_gid }}"
