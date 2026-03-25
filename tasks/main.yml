@@ -2,19 +2,11 @@
 # SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # tasks file for crowdsec
-
-- name: Include OS-specific variables
-  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
-  tags:
-    - crowdsec
-    - crowdsec-install
-
 - name: Include install mode specific tasks
   ansible.builtin.include_tasks: "install-docker.yml"
   tags:
     - crowdsec
     - crowdsec-install
-
 
 - name: Ensure CrowdSec directories exist
   ansible.builtin.file:
@@ -57,7 +49,9 @@
 
 - name: Install CrowdSec collections
   community.docker.docker_container:
-    name: "{{ crowdsec_container_name }}-oneoff-collection-{{ item | regex_replace('/','_') }}"
+    name: >
+      {{ crowdsec_container_name }}-oneoff-collection-
+      {{ item | regex_replace('/', '_') }}
     image: "{{ crowdsec_docker_image }}:{{ crowdsec_docker_tag }}"
     command: "cscli collections install {{ item }}"
     state: started
@@ -80,7 +74,8 @@
     command: >
       cscli console enroll {{ crowdsec_enroll_key }}
       --name {{ crowdsec_enroll_name | default(ansible_hostname) }}
-      {{ '--tags ' + (crowdsec_enroll_tags | join(',')) if crowdsec_enroll_tags else '' }}
+      {{ '--tags ' + (crowdsec_enroll_tags
+        | join(',')) if crowdsec_enroll_tags else '' }}
       {{ '--overwrite' if crowdsec_enroll_overwrite else '' }}
     state: started
     auto_remove: true
@@ -93,14 +88,16 @@
     - crowdsec_enroll_key | length > 0
   register: enroll_result
   changed_when: "'successfully enrolled' in (enroll_result.stdout|default(''))"
-  failed_when: enroll_result.rc != 0 and 'already enrolled' not in (enroll_result.stderr|default(''))
+  failed_when:
+    - enroll_result.rc != 0
+    - '"already enrolled" not in (enroll_result.stderr|default(''))'
   notify: Restart crowdsec
   tags:
     - crowdsec
     - crowdsec-enroll
 
 - name: Ensure CrowdSec docker-compose is running (present)
-  community.docker.docker_compose:
+  community.docker.docker_compose_v2:
     project_src: "{{ crowdsec_compose_dir }}"
     state: present
   when:
@@ -110,7 +107,7 @@
     - crowdsec-service
 
 - name: Ensure CrowdSec docker-compose is absent (stopped)
-  community.docker.docker_compose:
+  community.docker.docker_compose_v2:
     project_src: "{{ crowdsec_compose_dir }}"
     state: absent
   when:

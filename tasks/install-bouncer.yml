@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Install individual bouncer
 
-- name: Install bouncer {{ bouncer.name }} (docker one-shot)
+- name: Install bouncer as docker one-shot {{ bouncer.name }}
   community.docker.docker_container:
     name: "{{ crowdsec_container_name }}-oneoff-bouncer-{{ bouncer.name }}"
     image: "{{ crowdsec_docker_image }}:{{ crowdsec_docker_tag }}"
@@ -17,7 +17,9 @@
     user: "0:0"
   register: bouncer_install
   changed_when: "'successfully added' in (bouncer_install.stdout|default(''))"
-  failed_when: bouncer_install.rc != 0 and 'already exists' not in (bouncer_install.stderr|default(''))
+  failed_when:
+    - bouncer_install.rc != 0
+    - '"already exists" not in (bouncer_install.stderr|default(''))'
   when: crowdsec_install_type == 'docker'
   tags:
     - crowdsec

@@ -14,7 +14,7 @@
     - crowdsec
     - crowdsec-install
 
-- name: Ensure crowdsec host user exists
+- name: Ensure crowdsec host group exists
   ansible.builtin.group:
     name: "{{ crowdsec_host_group }}"
     gid: "{{ crowdsec_host_gid }}"
@@ -28,8 +28,8 @@
     name: "{{ crowdsec_host_user }}"
     uid: "{{ crowdsec_host_uid }}"
     group: "{{ crowdsec_host_group }}"
-    system: yes
-    create_home: no
+    system: true
+    create_home: false
     state: present
   tags:
     - crowdsec
@@ -65,8 +65,11 @@
 - name: Ensure crowdsec is present in /etc/subuid
   ansible.builtin.lineinfile:
     path: /etc/subuid
+    owner: root
+    group: root
+    mode: '0644'
     line: "{{ crowdsec_host_user }}:{{ crowdsec_host_uid }}:65536"
-    create: yes
+    create: true
     state: present
   tags:
     - crowdsec
@@ -75,8 +78,11 @@
 - name: Ensure crowdsec is present in /etc/subgid
   ansible.builtin.lineinfile:
     path: /etc/subgid
+    owner: root
+    group: root
+    mode: '0644'
     line: "{{ crowdsec_host_user }}:{{ crowdsec_host_gid }}:65536"
-    create: yes
+    create: true
     state: present
   tags:
     - crowdsec
@@ -107,18 +113,20 @@
     - crowdsec-install
 
 - name: Pull docker images via compose
-  community.docker.docker_compose:
+  community.docker.docker_compose_v2:
     project_src: "{{ crowdsec_compose_dir }}"
     pull: true
+  when: crowdsec_service_state == 'started'
   tags:
     - crowdsec
     - crowdsec-install
 
 - name: Start docker-compose services
-  community.docker.docker_compose:
+  community.docker.docker_compose_v2:
     project_src: "{{ crowdsec_compose_dir }}"
     state: present
     restarted: true
+  when: crowdsec_service_state == 'started'
   notify: Restart crowdsec
   tags:
     - crowdsec

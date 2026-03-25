@@ -1,0 +1,29 @@
+---
+# SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+dependency:
+  name: galaxy
+
+driver:
+  name: docker
+
+platforms:
+  - name: dind
+    image: docker:24-dind
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+provisioner:
+  name: ansible
+  playbooks:
+    converge: converge.yml
+
+verifier:
+  name: testinfra
+
+lint: |
+  set -e
+  yamllint
+  ansible-lint
+  molecule-lint

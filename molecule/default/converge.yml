@@ -1,0 +1,19 @@
+---
+# SPDX-FileCopyrightText: 2025 Leonardo Vasi <dev@levaitis.de>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+- name: Converge (default)
+  hosts: all
+  become: true
+  roles:
+    - role: "../../"
+      vars:
+        crowdsec_install_type: docker
+        crowdsec_compose_dir: /srv/crowdsec
+        crowdsec_host_user: crowdsec_test
+        crowdsec_host_uid: 2001
+        crowdsec_host_group: crowdsec_test
+        crowdsec_host_gid: 2001
+        crowdsec_docker_ports:
+          - "127.0.0.1:18080:8080"
+          - "127.0.0.1:16060:6060"
+        crowdsec_service_state: stopped

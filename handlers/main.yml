@@ -4,13 +4,13 @@
 # handlers file for crowdsec
 
 - name: Deploy crowdsec docker compose
-  community.docker.docker_compose:
+  community.docker.docker_compose_v2:
     project_src: "{{ crowdsec_compose_dir }}"
     state: present
     restarted: true
 
-- name: Restart crowdsec 
-  community.docker.docker_compose:
+- name: Restart crowdsec
+  community.docker.docker_compose_v2:
     project_src: "{{ crowdsec_compose_dir }}"
     restarted: true
   when: crowdsec_service_state == "started"
@@ -19,4 +19,3 @@
   ansible.builtin.service:
     name: docker
     state: restarted
-
