@@ -15,7 +15,7 @@ This role deploys CrowdSec as a Docker service using docker-compose and manages 
 
 CrowdSec is a free, modern & collaborative behavior detection engine, coupled with a global IP reputation network. It is also an open source project that can be found on [GitHub](https://github.com/crowdsecurity/crowdsec).
 
-I personally am using it for almost 2 years now - bot personal and in a professional setting. 
+I personally am using it for almost 2 years now - both personal and in a professional setting. 
 
 For more information refer to their website: https://www.crowdsec.net/.
 
